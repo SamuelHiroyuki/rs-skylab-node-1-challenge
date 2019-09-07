@@ -36,9 +36,29 @@ const checkProjectExists = (req, res, next) => {
 	return next();
 };
 
+const checkHasId = (req, res, next) => {
+	if (!req.body.id) {
+		return res.status(400).json({
+			error: "The property 'id' is required!"
+		});
+	}
+
+	return next();
+};
+
+const checkHasTitle = (req, res, next) => {
+	if (!req.body.title) {
+		return res.status(400).json({
+			error: "The property 'title' is required!"
+		});
+	}
+
+	return next();
+};
+
 // Routes
 
-server.post("/projects", (req, res) => {
+server.post("/projects", checkHasId, checkHasTitle, (req, res) => {
 	const { id, title } = req.body;
 	const project = {
 		id,
@@ -55,7 +75,7 @@ server.get("/projects", (req, res) => {
 	return res.json(projects);
 });
 
-server.put("/projects/:id", checkProjectExists, (req, res) => {
+server.put("/projects/:id", checkProjectExists, checkHasTitle, (req, res) => {
 	const { title } = req.body;
 	projects[req.projectIdex].title = title;
 	return res.json(projects[req.projectIdex]);
@@ -68,10 +88,15 @@ server.delete("/projects/:id", checkProjectExists, (req, res) => {
 	});
 });
 
-server.post("/projects/:id/tasks", checkProjectExists, (req, res) => {
-	const { title } = req.body;
-	projects[req.projectIdex].tasks.push(title);
-	return res.json(projects[req.projectIdex]);
-});
+server.post(
+	"/projects/:id/tasks",
+	checkProjectExists,
+	checkHasTitle,
+	(req, res) => {
+		const { title } = req.body;
+		projects[req.projectIdex].tasks.push(title);
+		return res.json(projects[req.projectIdex]);
+	}
+);
 
 server.listen(3000);
